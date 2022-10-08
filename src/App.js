@@ -68,7 +68,7 @@ function App() {
 
   return (
     <main>
-      
+
       <header style = { {backgroundImage:  `url(${background})`} }> </header>
 
       { filters.length !== 0 
@@ -83,6 +83,9 @@ function App() {
         handleFilters = {handleFilters}
       />
 
+    <footer>
+      Created by <a href='https://github.com/Avitohol1' target='_blank' rel='noreferrer'>Rosen Ivanov</a>
+    </footer>
     </main>
   );
 }
