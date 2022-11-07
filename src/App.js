@@ -40,6 +40,7 @@ function App() {
   const [filters, setFilters] = useState([])
   const [jobs, setJobs] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [content, setContent] = useState(null)
 
   const handleFilters = useCallback((tag) => {
     // Check if tag exists in filters array
@@ -47,7 +48,7 @@ function App() {
       // Add tag to filter array
       setFilters(prevValue => [...prevValue, tag])
     }
-  }, [])
+  }, [filters])
     
 
   // Clear a filter
@@ -62,34 +63,42 @@ function App() {
 
   useEffect(() => {
     // Set the filtered jobs
-    const timeOut = setTimeout(() => {
-      setIsLoading(true)
-      setJobs(() => filterJobs(data))
-    }, 3000)
-
-    return () => {
-      clearTimeout(timeOut)
+    if(jobs.length === 0) {
+      const timeOut = setTimeout(() => {
+        setIsLoading(true)
+        setJobs(() => filterJobs(data))
+      }, 3000)
+          
+      return () => {
+        clearTimeout(timeOut)
+        setIsLoading(false)
+      }
     }
 
-  }, [filterJobs])
+    else {
+      setJobs(() => filterJobs(data))
+    }
+  }, [filters])
 
-  let content = null
+  useEffect(() => { 
+    if(isLoading) {
+      setContent( <div className="loader">
+                    <RingLoader
+                      color="hsl(180, 29%, 50%)"
+                      loading={isLoading}
+                      size={50}
+                      aria-label="Loading Spinner"
+                      data-testid="loader"
+                    />
+                  </div>
+                )
+    }
 
-  if(isLoading) {
-    content =  <div className="loader">
-                <RingLoader
-                  color="hsl(180, 29%, 50%)"
-                  loading={isLoading}
-                  size={50}
-                  aria-label="Loading Spinner"
-                  data-testid="loader"
-                />
-              </div>
-  }
+    if(jobs.length > 0) {
+      setContent( <JobList jobs = {jobs} handleFilters = {handleFilters} /> )
+    }
+  }, [isLoading, jobs])
 
-  if(jobs.length > 0) {
-    content = <JobList jobs = {jobs} handleFilters = {handleFilters} />
-  }
 
   return (
     <main>
