@@ -1,10 +1,11 @@
-import './App.css';
-import { useState, useEffect } from 'react'
-import JobCard from './Components/JobCard'
+import './App.css'
+import { useState, useEffect, useCallback } from 'react'
+import JobList from './Components/JobList'
 import Filters from './Components/Filters'
 import data from './data.json'
 import header_background_desktop from './images/bg-header-desktop.svg'
 import header_background_mobile from './images/bg-header-mobile.svg'
+import { RingLoader } from "react-spinners"
 
 function App() {
 
@@ -37,17 +38,17 @@ function App() {
 
   // States for the filters (tags) and jobs
   const [filters, setFilters] = useState([])
-  const [jobs, setJobs] = useState(filterJobs(data))
+  const [jobs, setJobs] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  
-
-  const handleFilters = (tag) => {
+  const handleFilters = useCallback((tag) => {
     // Check if tag exists in filters array
     if(filters.indexOf(tag) === -1) {
       // Add tag to filter array
       setFilters(prevValue => [...prevValue, tag])
     }
-  }
+  }, [])
+    
 
   // Clear a filter
   const clearFilter = (tag) => {
@@ -61,15 +62,38 @@ function App() {
 
   useEffect(() => {
     // Set the filtered jobs
-    setJobs(filterJobs(data))
-  }, [filters])
-  
+    const timeOut = setTimeout(() => {
+      setIsLoading(true)
+      setJobs(() => filterJobs(data))
+    }, 3000)
 
+    return () => {
+      clearTimeout(timeOut)
+    }
+
+  }, [filterJobs])
+
+  let content = null
+
+  if(isLoading) {
+    content =  <div className="loader">
+                <RingLoader
+                  color="hsl(180, 29%, 50%)"
+                  loading={isLoading}
+                  size={50}
+                  aria-label="Loading Spinner"
+                  data-testid="loader"
+                />
+              </div>
+  }
+
+  if(jobs.length > 0) {
+    content = <JobList jobs = {jobs} handleFilters = {handleFilters} />
+  }
 
   return (
     <main>
-
-      <header style = { {backgroundImage:  `url(${background})`} }> </header>
+      <header style = { {backgroundImage:  `url(${background})`} } />
 
       { filters.length !== 0 
         && <Filters 
@@ -78,14 +102,12 @@ function App() {
               clearFilter = {clearFilter} 
             /> 
       }
-      <JobCard 
-        jobs = {jobs} 
-        handleFilters = {handleFilters}
-      />
+        
+      { content }
 
-    <footer>
-      Created by <a href='https://github.com/Avitohol1' target='_blank' rel='noreferrer'>Rosen Ivanov</a>
-    </footer>
+      <footer>
+        Created by <a href='https://github.com/Avitohol1' target='_blank' rel='noreferrer'>Rosen Ivanov</a>
+      </footer>
     </main>
   );
 }
